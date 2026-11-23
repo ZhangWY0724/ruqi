@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Handlers;
 using Ruqi.App.Pages;
+#if ANDROID
 using Ruqi.App.Platforms.Android;
+#endif
 using Ruqi.App.Services;
 using Ruqi.Core.Data;
 using Ruqi.Core.Services;
@@ -23,7 +25,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        ConfigureModernAndroidControls();
+        ConfigureModernPlatformControls();
 
         // Core 层注册
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "ruqi_ledger.db");
@@ -32,10 +34,20 @@ public static class MauiProgram
         builder.Services.AddSingleton<LedgerService>();
         builder.Services.AddSingleton<BackupService>();
 
-        // App 事件与平台能力注册
+        // App 事件总线
         builder.Services.AddSingleton<AppEventBus>();
+
+        // 跨平台能力按目标平台注册
+#if ANDROID
         builder.Services.AddSingleton<IReminderScheduler, AndroidReminderScheduler>();
         builder.Services.AddSingleton<IBackupFilePicker, AndroidBackupFilePicker>();
+#elif IOS || MACCATALYST
+        builder.Services.AddSingleton<IReminderScheduler, AppleReminderScheduler>();
+        builder.Services.AddSingleton<IBackupFilePicker, CrossPlatformBackupFilePicker>();
+#elif WINDOWS
+        builder.Services.AddSingleton<IReminderScheduler, WindowsReminderScheduler>();
+        builder.Services.AddSingleton<IBackupFilePicker, CrossPlatformBackupFilePicker>();
+#endif
 
         // 主 Tab 页面与 Shell
         builder.Services.AddTransient<HomePage>();
@@ -51,7 +63,7 @@ public static class MauiProgram
         return builder.Build();
     }
 
-    private static void ConfigureModernAndroidControls()
+    private static void ConfigureModernPlatformControls()
     {
 #if ANDROID
         // 彻底移除 Android 原生 Entry / Picker / DatePicker / TimePicker 的默认黑色下划线与冗余内边距
@@ -81,6 +93,17 @@ public static class MauiProgram
             handler.PlatformView.Background = null;
             handler.PlatformView.SetBackgroundColor(Android.Graphics.Color.Transparent);
             handler.PlatformView.SetPadding(0, 0, 0, 0);
+        });
+#elif IOS || MACCATALYST
+        EntryHandler.Mapper.AppendToMapping("NoBorder", (handler, _) =>
+        {
+            handler.PlatformView.BorderStyle = UIKit.UITextBorderStyle.None;
+        });
+#elif WINDOWS
+        EntryHandler.Mapper.AppendToMapping("NoBorder", (handler, _) =>
+        {
+            handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+            handler.PlatformView.Background = null;
         });
 #endif
     }

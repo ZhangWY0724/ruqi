@@ -2,6 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
+		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Ruqi.App</RootNamespace>
@@ -10,31 +12,37 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
-		<!-- 默认打包为可直接安装的 APK，始终内嵌全部 C# 程序集以便脱离电脑独立安装 -->
-		<AndroidPackageFormat>apk</AndroidPackageFormat>
-		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-		<AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
-
-		<!-- Release 构建：关闭激进裁剪与静态 Marshal 方法重写，确保 JNI 稳定注册零闪退 -->
-		<PublishTrimmed Condition="'$(Configuration)' == 'Release'">false</PublishTrimmed>
-		<RunAOTCompilation Condition="'$(Configuration)' == 'Release'">false</RunAOTCompilation>
-		<AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
-
-		<!-- 本机环境兜底：优先使用已安装的 JDK 21 与 Android SDK -->
-		<JavaSdkDirectory Condition="'$(JavaSdkDirectory)' == '' and Exists('C:\Program Files\Microsoft\jdk-21.0.9.10-hotspot')">C:\Program Files\Microsoft\jdk-21.0.9.10-hotspot</JavaSdkDirectory>
-		<AndroidSdkDirectory Condition="'$(AndroidSdkDirectory)' == '' and Exists('$(LOCALAPPDATA)\Android\Sdk')">$(LOCALAPPDATA)\Android\Sdk</AndroidSdkDirectory>
-
-		<!-- Display name -->
+		<!-- 应用基础信息与版本（CI 发布时可通过 -p:ApplicationDisplayVersion / -p:ApplicationVersion 自动覆盖） -->
 		<ApplicationTitle>如期</ApplicationTitle>
-
-		<!-- App Identifier -->
 		<ApplicationId>com.ruqi.app</ApplicationId>
+		<ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">1.0.0</ApplicationDisplayVersion>
+		<ApplicationVersion Condition="'$(ApplicationVersion)' == ''">1</ApplicationVersion>
 
-		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+		<!-- Windows 绿色免安装自包含模式（无需签名证书，解压即可双击运行） -->
+		<WindowsPackageType>None</WindowsPackageType>
+		<WindowsAppSDKSelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">true</WindowsAppSDKSelfContained>
 
+		<!-- 各平台最低系统版本 -->
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+
+		<!-- Android 专属打包优化：始终内嵌全部程序集、关闭静态 Marshal 方法重写以确保独立 APK 零闪退 -->
+		<AndroidPackageFormat Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">apk</AndroidPackageFormat>
+		<EmbedAssembliesIntoApk Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</EmbedAssembliesIntoApk>
+		<AndroidUseSharedRuntime Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">false</AndroidUseSharedRuntime>
+		<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' and '$(Configuration)' == 'Release'">false</PublishTrimmed>
+		<RunAOTCompilation Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' and '$(Configuration)' == 'Release'">false</RunAOTCompilation>
+		<AndroidEnableMarshalMethods Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">false</AndroidEnableMarshalMethods>
+
+		<!-- iOS / MacCatalyst 无付费证书构建兜底：允许关闭裁剪避免 JSON/反射丢失 -->
+		<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">None</MtouchLink>
+
+		<!-- 本机 Windows 开发环境兜底（仅当存在本地路径且未显式传入时生效，不影响 GitHub Actions） -->
+		<JavaSdkDirectory Condition="'$(JavaSdkDirectory)' == '' and '$(CI)' == '' and Exists('C:\Program Files\Microsoft\jdk-21.0.9.10-hotspot')">C:\Program Files\Microsoft\jdk-21.0.9.10-hotspot</JavaSdkDirectory>
+		<AndroidSdkDirectory Condition="'$(AndroidSdkDirectory)' == '' and '$(CI)' == '' and Exists('$(LOCALAPPDATA)\Android\Sdk')">$(LOCALAPPDATA)\Android\Sdk</AndroidSdkDirectory>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -48,11 +56,11 @@
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Include="Resources\Images\Brands\*.png" />
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
-		
+
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
 
-		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<!-- Raw Assets -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
@@ -64,7 +72,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Ruqi.Core\Ruqi.Core.csproj" />
+		<ProjectReference Include="..\Ruqi.Core\Ruqi.Core.csproj" />
 	</ItemGroup>
 
 </Project>

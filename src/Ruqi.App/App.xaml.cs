@@ -28,6 +28,16 @@ public partial class App : Application
     {
         var splash = new SplashLaunchPage(EnterMainAppAsync);
         _mainWindow = new Window(splash);
+
+#if WINDOWS || MACCATALYST
+        // 桌面端设定精致紧凑的默认窗口比例，保持移动账本级阅读手感
+        _mainWindow.Title = "如期";
+        _mainWindow.Width = 430;
+        _mainWindow.Height = 840;
+        _mainWindow.MinimumWidth = 380;
+        _mainWindow.MinimumHeight = 680;
+#endif
+
         _mainWindow.Resumed += (_, _) =>
         {
             if (_enteredMainApp)

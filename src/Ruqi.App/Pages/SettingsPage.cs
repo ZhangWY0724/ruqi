@@ -79,6 +79,7 @@ public sealed class SettingsPage : ContentPage
             notifStatus.AreNotificationsEnabled ? UiHelper.ConfirmedColor : UiHelper.PendingColor,
             () => _scheduler.OpenAppNotificationSettings()));
 
+#if ANDROID
         notifRows.Add(UiHelper.CreateDivider());
         notifRows.Add(CreateNavRow(
             "精确提醒权限",
@@ -92,6 +93,7 @@ public sealed class SettingsPage : ContentPage
             notifStatus.IsIgnoringBatteryOptimizations ? "已放行" : "受省电限制（建议放行）",
             notifStatus.IsIgnoringBatteryOptimizations ? UiHelper.ConfirmedColor : UiHelper.TextSecondary,
             () => _scheduler.OpenBatteryOptimizationSettings()));
+#endif
 
         notifRows.Add(UiHelper.CreateDivider());
         var defaultRemSummary = BuildDefaultReminderSummary(settings);
@@ -144,10 +146,10 @@ public sealed class SettingsPage : ContentPage
         aboutRows.Add(CreateNavRowAsync("隐私与本地数据说明", "纯本地离线", UiHelper.TextSecondary, () => SplashLaunchPage.ShowReadOnlyPrivacyAsync(Navigation)));
         _bodyStack.Add(UiHelper.CreateCard(aboutRows, new Thickness(16, 4), 18));
 
-        // 版本信息
+        // 版本信息（自动同步构建版本号）
         _bodyStack.Add(new Label
         {
-            Text = "如期 v1.0.0 · 纯本地人民币订阅账本",
+            Text = $"如期 v{AppInfo.Current.VersionString} · 纯本地人民币订阅账本",
             FontSize = 12,
             TextColor = UiHelper.TextMuted,
             HorizontalTextAlignment = TextAlignment.Center,
