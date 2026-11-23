@@ -16,7 +16,7 @@
 		<!-- 应用基础信息与版本（CI 发布时可通过 -p:ApplicationDisplayVersion / -p:ApplicationVersion 自动覆盖） -->
 		<ApplicationTitle>如期</ApplicationTitle>
 		<ApplicationId>com.ruqi.app</ApplicationId>
-		<ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">1.0.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">0.0.1</ApplicationDisplayVersion>
 		<ApplicationVersion Condition="'$(ApplicationVersion)' == ''">1</ApplicationVersion>
 
 		<!-- Windows 绿色免安装自包含模式（无需签名证书，解压即可双击运行） -->
