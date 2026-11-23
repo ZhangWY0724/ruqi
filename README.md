@@ -42,8 +42,6 @@
 
 - **Android**：下载 `*-android-arm64.apk` 直接安装（最低支持 Android 8.0）。
 - **Windows**：下载 `*-windows-x64.zip` 解压后双击 `Ruqi.App.exe` 即可运行（绿色免安装）。
-- **macOS**：下载 `*-macos-arm64.app.zip` 解压运行（首次打开可右键选择「打开」）。
-- **iOS**：提供 `*.ipa` 安装包。
 
 ---
 
@@ -57,7 +55,7 @@
 
 ## 技术栈
 
-- `.NET 10 MAUI`（Android / Windows / macOS / iOS）
+- `.NET 10 MAUI`（Android / Windows）
 - `Microsoft.Data.Sqlite`（本地 SQLite 持久化）
 - `CommunityToolkit.Mvvm` / `CommunityToolkit.Maui`
 - `xUnit`（核心领域与 SQLite 集成测试）
