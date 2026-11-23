@@ -240,7 +240,7 @@ public sealed class SplashLaunchPage : ContentPage
 
         var card = BuildPrivacyCard(
             readOnly: true,
-            onAccept: async () => await navigation.PopModalAsync(animated: false),
+            onAccept: async () => await ModalCoordinator.PopModalAsync(modal, animated: false),
             onDecline: () => { });
 
         modal.Content = new Grid
@@ -249,7 +249,7 @@ public sealed class SplashLaunchPage : ContentPage
             Children = { card }
         };
 
-        await navigation.PushModalAsync(modal, animated: false);
+        await ModalCoordinator.PushModalAsync(navigation, modal, animated: false);
     }
 
     private static Border BuildPrivacyCard(bool readOnly, Func<Task> onAccept, Action onDecline)
@@ -277,7 +277,7 @@ public sealed class SplashLaunchPage : ContentPage
             CornerRadius = 14,
             HeightRequest = 48
         };
-        acceptBtn.Clicked += async (_, _) => await onAccept();
+        UiHelper.AttachClickAsync(acceptBtn, onAccept);
         buttons.Add(acceptBtn);
 
         if (!readOnly)

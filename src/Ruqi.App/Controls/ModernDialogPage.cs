@@ -11,19 +11,15 @@ public sealed record BillingEditResult(long AmountCents, DateOnly PaidDate, stri
 /// </summary>
 public static class ModernDialogPage
 {
-    public static Task ShowAlertAsync(
+    public static async Task ShowAlertAsync(
         INavigation? navigation,
         string title,
         string message,
         string okText = "知道了",
         bool isDanger = false)
     {
-        var nav = ResolveNav(navigation);
-        if (nav is null) return Task.CompletedTask;
-
-        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var page = new CenteredAlertPage(title, message, okText, null, isDanger, _ => tcs.TrySetResult());
-        return PushAndAwaitAsync(nav, page, tcs.Task);
+        var page = new CenteredAlertPage(title, message, okText, null, isDanger);
+        await ModalCoordinator.ShowAsync(navigation, page, fallbackResult: false);
     }
 
     public static Task<bool> ShowConfirmAsync(
@@ -34,12 +30,8 @@ public static class ModernDialogPage
         string cancelText = "取消",
         bool isDanger = false)
     {
-        var nav = ResolveNav(navigation);
-        if (nav is null) return Task.FromResult(false);
-
-        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var page = new CenteredAlertPage(title, message, confirmText, cancelText, isDanger, ok => tcs.TrySetResult(ok));
-        return PushAndAwaitAsync(nav, page, tcs.Task);
+        var page = new CenteredAlertPage(title, message, confirmText, cancelText, isDanger);
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: false);
     }
 
     public static Task<string?> ShowPromptAsync(
@@ -51,12 +43,8 @@ public static class ModernDialogPage
         string confirmText = "确定",
         Keyboard? keyboard = null)
     {
-        var nav = ResolveNav(navigation);
-        if (nav is null) return Task.FromResult<string?>(null);
-
-        var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var page = new SinglePromptSheetPage(title, subtitle, placeholder, initialValue, confirmText, keyboard ?? Keyboard.Default, v => tcs.TrySetResult(v));
-        return PushAndAwaitAsync(nav, page, tcs.Task);
+        var page = new SinglePromptSheetPage(title, subtitle, placeholder, initialValue, confirmText, keyboard ?? Keyboard.Default);
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: null);
     }
 
     public static Task<AccountEditResult?> ShowAccountEditorAsync(
@@ -65,12 +53,8 @@ public static class ModernDialogPage
         string? initialIdentifier = null,
         string? initialNickname = null)
     {
-        var nav = ResolveNav(navigation);
-        if (nav is null) return Task.FromResult<AccountEditResult?>(null);
-
-        var tcs = new TaskCompletionSource<AccountEditResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var page = new AccountEditorSheetPage(title, initialIdentifier, initialNickname, r => tcs.TrySetResult(r));
-        return PushAndAwaitAsync(nav, page, tcs.Task);
+        var page = new AccountEditorSheetPage(title, initialIdentifier, initialNickname);
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: null);
     }
 
     public static Task<BillingEditResult?> ShowBillingEditorAsync(
@@ -81,39 +65,15 @@ public static class ModernDialogPage
         string? initialNote,
         DateOnly? maxDate = null)
     {
-        var nav = ResolveNav(navigation);
-        if (nav is null) return Task.FromResult<BillingEditResult?>(null);
-
-        var tcs = new TaskCompletionSource<BillingEditResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var page = new BillingEditorSheetPage(title, initialAmountCents, initialDate, initialNote, maxDate, r => tcs.TrySetResult(r));
-        return PushAndAwaitAsync(nav, page, tcs.Task);
+        var page = new BillingEditorSheetPage(title, initialAmountCents, initialDate, initialNote, maxDate);
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: null);
     }
 
-    private static INavigation? ResolveNav(INavigation? nav)
-        => nav ?? Shell.Current?.Navigation ?? Application.Current?.Windows.FirstOrDefault()?.Page?.Navigation;
-
-    private static async Task PushAndAwaitAsync(INavigation nav, ContentPage page, Task task)
+    private sealed class CenteredAlertPage : ResultModalPage<bool>
     {
-        await nav.PushModalAsync(page, animated: false);
-        await task;
-    }
-
-    private static async Task<T> PushAndAwaitAsync<T>(INavigation nav, ContentPage page, Task<T> task)
-    {
-        await nav.PushModalAsync(page, animated: false);
-        return await task;
-    }
-
-    private sealed class CenteredAlertPage : ContentPage
-    {
-        private readonly Action<bool> _complete;
-        private bool _closed;
-
-        public CenteredAlertPage(string title, string message, string confirmText, string? cancelText, bool isDanger, Action<bool> complete)
+        public CenteredAlertPage(string title, string message, string confirmText, string? cancelText, bool isDanger)
+            : base(cancelResult: false, backdropAlpha: 0.42f)
         {
-            _complete = complete;
-            BackgroundColor = Colors.Black.WithAlpha(0.42f);
-            Shell.SetNavBarIsVisible(this, false);
 
             var primaryBtn = new Button
             {
@@ -210,33 +170,15 @@ public static class ModernDialogPage
                 Children = { backdrop, card }
             };
         }
-
-        protected override bool OnBackButtonPressed()
-        {
-            _ = CloseAsync(false);
-            return true;
-        }
-
-        private async Task CloseAsync(bool result)
-        {
-            if (_closed) return;
-            _closed = true;
-            await UiHelper.PopModalSafelyAsync(this);
-            _complete(result);
-        }
     }
 
-    private sealed class SinglePromptSheetPage : ContentPage
+    private sealed class SinglePromptSheetPage : ResultModalPage<string?>
     {
-        private readonly Action<string?> _complete;
         private readonly Entry _entry;
-        private bool _closed;
 
-        public SinglePromptSheetPage(string title, string? subtitle, string placeholder, string? initialValue, string confirmText, Keyboard keyboard, Action<string?> complete)
+        public SinglePromptSheetPage(string title, string? subtitle, string placeholder, string? initialValue, string confirmText, Keyboard keyboard)
+            : base(cancelResult: null, backdropAlpha: 0.42f)
         {
-            _complete = complete;
-            BackgroundColor = Colors.Black.WithAlpha(0.42f);
-            Shell.SetNavBarIsVisible(this, false);
 
             _entry = new Entry
             {
@@ -266,35 +208,17 @@ public static class ModernDialogPage
 
             Content = WrapBottomSheet(() => _ = CloseAsync(null), header, inputBox, footer);
         }
-
-        protected override bool OnBackButtonPressed()
-        {
-            _ = CloseAsync(null);
-            return true;
-        }
-
-        private async Task CloseAsync(string? result)
-        {
-            if (_closed) return;
-            _closed = true;
-            await UiHelper.PopModalSafelyAsync(this);
-            _complete(result);
-        }
     }
 
-    private sealed class AccountEditorSheetPage : ContentPage
+    private sealed class AccountEditorSheetPage : ResultModalPage<AccountEditResult?>
     {
-        private readonly Action<AccountEditResult?> _complete;
         private readonly Entry _identifierEntry;
         private readonly Entry _nicknameEntry;
         private readonly Label _errorLabel;
-        private bool _closed;
 
-        public AccountEditorSheetPage(string title, string? initialIdentifier, string? initialNickname, Action<AccountEditResult?> complete)
+        public AccountEditorSheetPage(string title, string? initialIdentifier, string? initialNickname)
+            : base(cancelResult: null, backdropAlpha: 0.42f)
         {
-            _complete = complete;
-            BackgroundColor = Colors.Black.WithAlpha(0.42f);
-            Shell.SetNavBarIsVisible(this, false);
 
             var header = BuildSheetHeader(title, "跨所有应用通用，新增订阅时可一键选择", () => _ = CloseAsync(null));
 
@@ -353,44 +277,25 @@ public static class ModernDialogPage
 
             Content = WrapBottomSheet(() => _ = CloseAsync(null), header, fields, footer);
         }
-
-        protected override bool OnBackButtonPressed()
-        {
-            _ = CloseAsync(null);
-            return true;
-        }
-
-        private async Task CloseAsync(AccountEditResult? result)
-        {
-            if (_closed) return;
-            _closed = true;
-            await UiHelper.PopModalSafelyAsync(this);
-            _complete(result);
-        }
     }
 
-    private sealed class BillingEditorSheetPage : ContentPage
+    private sealed class BillingEditorSheetPage : ResultModalPage<BillingEditResult?>
     {
-        private readonly Action<BillingEditResult?> _complete;
         private readonly Entry _amountEntry;
         private readonly Label _dateValueLabel;
         private readonly Entry _noteEntry;
         private readonly Label _errorLabel;
         private DateOnly _selectedDate;
-        private bool _closed;
 
         public BillingEditorSheetPage(
             string title,
             long initialAmountCents,
             DateOnly initialDate,
             string? initialNote,
-            DateOnly? maxDate,
-            Action<BillingEditResult?> complete)
+            DateOnly? maxDate)
+            : base(cancelResult: null, backdropAlpha: 0.42f)
         {
-            _complete = complete;
             _selectedDate = initialDate;
-            BackgroundColor = Colors.Black.WithAlpha(0.42f);
-            Shell.SetNavBarIsVisible(this, false);
 
             var header = BuildSheetHeader(title, "账单变更后将立即同步更新支出统计", () => _ = CloseAsync(null));
 
@@ -508,20 +413,6 @@ public static class ModernDialogPage
             });
 
             Content = WrapBottomSheet(() => _ = CloseAsync(null), header, fields, footer);
-        }
-
-        protected override bool OnBackButtonPressed()
-        {
-            _ = CloseAsync(null);
-            return true;
-        }
-
-        private async Task CloseAsync(BillingEditResult? result)
-        {
-            if (_closed) return;
-            _closed = true;
-            await UiHelper.PopModalSafelyAsync(this);
-            _complete(result);
         }
     }
 

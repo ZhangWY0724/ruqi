@@ -5,24 +5,20 @@ namespace Ruqi.App.Controls;
 /// <summary>
 /// 现代冷白底部圆角时间选择器（常用快捷时间 + 小时/分钟胶囊点选）。
 /// </summary>
-public sealed class ModernTimePickerPage : ContentPage
+public sealed class ModernTimePickerPage : ResultModalPage<TimeOnly?>
 {
-    private readonly TaskCompletionSource<TimeOnly?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly Label _previewLabel;
     private readonly HorizontalStackLayout _hourBar;
     private readonly HorizontalStackLayout _minuteBar;
 
     private int _hour;
     private int _minute;
-    private bool _closed;
 
     private ModernTimePickerPage(string title, TimeOnly initialTime)
+        : base(cancelResult: null, backdropAlpha: 0.40f)
     {
         _hour = initialTime.Hour;
         _minute = initialTime.Minute;
-
-        BackgroundColor = Colors.Black.WithAlpha(0.40f);
-        Shell.SetNavBarIsVisible(this, false);
 
         var root = new Grid
         {
@@ -224,24 +220,9 @@ public sealed class ModernTimePickerPage : ContentPage
         return border;
     }
 
-    protected override bool OnBackButtonPressed()
-    {
-        _ = CloseAsync(null);
-        return true;
-    }
-
-    private async Task CloseAsync(TimeOnly? result)
-    {
-        if (_closed) return;
-        _closed = true;
-        await UiHelper.PopModalSafelyAsync(this);
-        _tcs.TrySetResult(result);
-    }
-
-    public static async Task<TimeOnly?> PickAsync(INavigation navigation, string title, TimeOnly initialTime)
+    public static Task<TimeOnly?> PickAsync(INavigation? navigation, string title, TimeOnly initialTime)
     {
         var page = new ModernTimePickerPage(title, initialTime);
-        await navigation.PushModalAsync(page, animated: false);
-        return await page._tcs.Task;
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: null);
     }
 }

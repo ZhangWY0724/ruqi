@@ -245,7 +245,7 @@ public sealed class SubscriptionDetailPage : ContentPage
                     VerticalOptions = LayoutOptions.Center
                 };
                 var occId = p.Id;
-                btn.Clicked += async (_, _) => await _confirmSheet.OpenAsync(occId);
+                UiHelper.AttachClickAsync(btn, () => _confirmSheet.OpenAsync(occId));
                 row.Add(btn, 1, 0);
                 pendingBox.Add(row);
             }
@@ -436,7 +436,7 @@ public sealed class SubscriptionDetailPage : ContentPage
             BorderColor = Color.FromArgb("#DCE0FF"),
             BorderWidth = 1
         };
-        copyBtn.Clicked += async (_, _) => await OpenCopyAsync();
+        UiHelper.AttachClickAsync(copyBtn, OpenCopyAsync);
         _bodyStack.Add(copyBtn);
 
         if (_sub.Status == SubscriptionStatus.Active)
@@ -450,7 +450,7 @@ public sealed class SubscriptionDetailPage : ContentPage
                 FontAttributes = FontAttributes.Bold,
                 HeightRequest = 42
             };
-            cancelBtn.Clicked += async (_, _) => await HandleCancelAsync();
+            UiHelper.AttachClickAsync(cancelBtn, HandleCancelAsync);
             _bodyStack.Add(cancelBtn);
 
             var channelTip = string.IsNullOrWhiteSpace(_sub.PaymentChannelName)
@@ -477,7 +477,7 @@ public sealed class SubscriptionDetailPage : ContentPage
                 CornerRadius = 14,
                 HeightRequest = 46
             };
-            resumeBtn.Clicked += async (_, _) => await HandleResumeAsync();
+            UiHelper.AttachClickAsync(resumeBtn, HandleResumeAsync);
             _bodyStack.Add(resumeBtn);
         }
     }
@@ -517,14 +517,14 @@ public sealed class SubscriptionDetailPage : ContentPage
     {
         if (_sub is null) return;
         var page = ActivatorUtilities.CreateInstance<SubscriptionFormPage>(_services, _sub.Id, false);
-        await Navigation.PushModalAsync(page);
+        await ModalCoordinator.PushModalAsync(Navigation, page, animated: true);
     }
 
     private async Task OpenCopyAsync()
     {
         if (_sub is null) return;
         var page = ActivatorUtilities.CreateInstance<SubscriptionFormPage>(_services, _sub.Id, true);
-        await Navigation.PushModalAsync(page);
+        await ModalCoordinator.PushModalAsync(Navigation, page, animated: true);
     }
 
     private async Task HandleCancelAsync()

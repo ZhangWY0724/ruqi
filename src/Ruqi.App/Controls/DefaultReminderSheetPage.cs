@@ -6,9 +6,8 @@ namespace Ruqi.App.Controls;
 /// <summary>
 /// 一屏直观可见的「默认提醒设置」底部抽屉，彻底替代逻辑割裂的多步菜单。
 /// </summary>
-public sealed class DefaultReminderSheetPage : ContentPage
+public sealed class DefaultReminderSheetPage : ResultModalPage<AppSettings?>
 {
-    private readonly TaskCompletionSource<AppSettings?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly AppSettings _working;
 
     private readonly Switch _beforeSwitch;
@@ -18,9 +17,8 @@ public sealed class DefaultReminderSheetPage : ContentPage
     private readonly Border _timeSectionCard;
     private readonly Label _timeValueLabel;
 
-    private bool _closed;
-
     private DefaultReminderSheetPage(AppSettings initial)
+        : base(cancelResult: null, backdropAlpha: 0.40f)
     {
         _working = new AppSettings
         {
@@ -30,9 +28,6 @@ public sealed class DefaultReminderSheetPage : ContentPage
             DefaultRemindTime = initial.DefaultRemindTime,
             LastBackupAt = initial.LastBackupAt
         };
-
-        BackgroundColor = Colors.Black.WithAlpha(0.40f);
-        Shell.SetNavBarIsVisible(this, false);
 
         var root = new Grid
         {
@@ -303,24 +298,9 @@ public sealed class DefaultReminderSheetPage : ContentPage
         return row;
     }
 
-    protected override bool OnBackButtonPressed()
-    {
-        _ = CloseAsync(null);
-        return true;
-    }
-
-    private async Task CloseAsync(AppSettings? result)
-    {
-        if (_closed) return;
-        _closed = true;
-        await UiHelper.PopModalSafelyAsync(this);
-        _tcs.TrySetResult(result);
-    }
-
-    public static async Task<AppSettings?> EditAsync(INavigation navigation, AppSettings current)
+    public static Task<AppSettings?> EditAsync(INavigation? navigation, AppSettings current)
     {
         var page = new DefaultReminderSheetPage(current);
-        await navigation.PushModalAsync(page, animated: false);
-        return await page._tcs.Task;
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: null);
     }
 }

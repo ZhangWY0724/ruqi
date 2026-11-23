@@ -385,7 +385,7 @@ public sealed class SubscriptionFormPage : ContentPage
             VerticalOptions = LayoutOptions.Center,
             Padding = new Thickness(4, 6)
         };
-        UiHelper.AttachTapAsync(cancelLabel, async () => await Navigation.PopModalAsync());
+        UiHelper.AttachTapAsync(cancelLabel, async () => await ModalCoordinator.PopModalAsync(this, animated: true));
         topBar.Add(cancelLabel, 0, 0);
 
         topBar.Add(new Label
@@ -559,7 +559,7 @@ public sealed class SubscriptionFormPage : ContentPage
             HeightRequest = 50,
             Margin = new Thickness(0, 4, 0, 0)
         };
-        bottomSaveBtn.Clicked += async (_, _) => await HandleSaveAsync();
+        UiHelper.AttachClickAsync(bottomSaveBtn, HandleSaveAsync);
 
         var scroll = new ScrollView
         {
@@ -1107,44 +1107,44 @@ public sealed class SubscriptionFormPage : ContentPage
     private async Task HandleSaveAsync()
     {
         if (_saving) return;
-
-        if (string.IsNullOrWhiteSpace(_appNameEntry.Text))
-        {
-            await ModernDialogPage.ShowAlertAsync(Navigation, "请完善信息", "请填写应用名称。");
-            return;
-        }
-
-        if (!FormatHelpers.TryParseCnyToCents(_amountEntry.Text, out var amountCents))
-        {
-            await ModernDialogPage.ShowAlertAsync(Navigation, "金额格式有误", "请输入有效的人民币金额（大于等于 0，最多两位小数）。");
-            return;
-        }
-
-        var interval = 1;
-        if (_selectedCycle is BillingCycleType.EveryNDays or BillingCycleType.EveryNMonths)
-        {
-            if (!int.TryParse(_intervalEntry.Text?.Trim(), out interval) || interval < 1)
-            {
-                await ModernDialogPage.ShowAlertAsync(Navigation, "间隔有误", "自定义周期间隔必须为正整数。");
-                return;
-            }
-        }
-
-        long? oneTimePaidCents = null;
-        if (!IsEditMode && _selectedCycle == BillingCycleType.OneTime && _recordOneTimeSwitch.IsToggled)
-        {
-            var raw = string.IsNullOrWhiteSpace(_oneTimePaidAmountEntry.Text) ? _amountEntry.Text : _oneTimePaidAmountEntry.Text;
-            if (!FormatHelpers.TryParseCnyToCents(raw, out var parsed))
-            {
-                await ModernDialogPage.ShowAlertAsync(Navigation, "实付金额有误", "请输入有效的本次实付金额。");
-                return;
-            }
-            oneTimePaidCents = parsed;
-        }
-
         _saving = true;
+
         try
         {
+            if (string.IsNullOrWhiteSpace(_appNameEntry.Text))
+            {
+                await ModernDialogPage.ShowAlertAsync(Navigation, "请完善信息", "请填写应用名称。");
+                return;
+            }
+
+            if (!FormatHelpers.TryParseCnyToCents(_amountEntry.Text, out var amountCents))
+            {
+                await ModernDialogPage.ShowAlertAsync(Navigation, "金额格式有误", "请输入有效的人民币金额（大于等于 0，最多两位小数）。");
+                return;
+            }
+
+            var interval = 1;
+            if (_selectedCycle is BillingCycleType.EveryNDays or BillingCycleType.EveryNMonths)
+            {
+                if (!int.TryParse(_intervalEntry.Text?.Trim(), out interval) || interval < 1)
+                {
+                    await ModernDialogPage.ShowAlertAsync(Navigation, "间隔有误", "自定义周期间隔必须为正整数。");
+                    return;
+                }
+            }
+
+            long? oneTimePaidCents = null;
+            if (!IsEditMode && _selectedCycle == BillingCycleType.OneTime && _recordOneTimeSwitch.IsToggled)
+            {
+                var raw = string.IsNullOrWhiteSpace(_oneTimePaidAmountEntry.Text) ? _amountEntry.Text : _oneTimePaidAmountEntry.Text;
+                if (!FormatHelpers.TryParseCnyToCents(raw, out var parsed))
+                {
+                    await ModernDialogPage.ShowAlertAsync(Navigation, "实付金额有误", "请输入有效的本次实付金额。");
+                    return;
+                }
+                oneTimePaidCents = parsed;
+            }
+
             if (_remindBeforeEnabled || _remindOnDayEnabled)
             {
                 await _scheduler.EnsureNotificationPermissionAsync();
@@ -1179,7 +1179,7 @@ public sealed class SubscriptionFormPage : ContentPage
             await _ledger.SaveSubscriptionAsync(draft, enforceTodayOrFuture: true);
             await _scheduler.RescheduleAllAsync();
             _bus.NotifyDataChanged();
-            await Navigation.PopModalAsync();
+            await ModalCoordinator.PopModalAsync(this, animated: true);
         }
         catch (Exception ex)
         {

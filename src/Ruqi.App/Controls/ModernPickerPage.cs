@@ -7,19 +7,15 @@ public sealed record PickerOption(string Value, string Title, string? Subtitle =
 /// <summary>
 /// 现代底部圆角选择抽屉，彻底取代老土的 Android 原生 Picker 下拉弹窗。
 /// </summary>
-public sealed class ModernPickerPage : ContentPage
+public sealed class ModernPickerPage : ResultModalPage<string?>
 {
-    private readonly TaskCompletionSource<string?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private bool _closed;
-
     private ModernPickerPage(
         string title,
         IReadOnlyList<PickerOption> options,
         string? selectedValue,
         string? extraActionLabel)
+        : base(cancelResult: null, backdropAlpha: 0.38f)
     {
-        BackgroundColor = Colors.Black.WithAlpha(0.38f);
-        Shell.SetNavBarIsVisible(this, false);
 
         var root = new Grid
         {
@@ -175,29 +171,14 @@ public sealed class ModernPickerPage : ContentPage
         Content = root;
     }
 
-    protected override bool OnBackButtonPressed()
-    {
-        _ = CloseAsync(null);
-        return true;
-    }
-
-    private async Task CloseAsync(string? result)
-    {
-        if (_closed) return;
-        _closed = true;
-        await UiHelper.PopModalSafelyAsync(this);
-        _tcs.TrySetResult(result);
-    }
-
-    public static async Task<string?> PickAsync(
-        INavigation navigation,
+    public static Task<string?> PickAsync(
+        INavigation? navigation,
         string title,
         IReadOnlyList<PickerOption> options,
         string? selectedValue = null,
         string? extraActionLabel = null)
     {
         var page = new ModernPickerPage(title, options, selectedValue, extraActionLabel);
-        await navigation.PushModalAsync(page, animated: false);
-        return await page._tcs.Task;
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: null);
     }
 }

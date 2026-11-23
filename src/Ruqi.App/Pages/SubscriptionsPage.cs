@@ -211,7 +211,7 @@ public sealed class SubscriptionsPage : ContentPage
         var addBtn = UiHelper.CreateCircleIconButton("+", async () =>
         {
             var page = ActivatorUtilities.CreateInstance<SubscriptionFormPage>(_services);
-            await Navigation.PushModalAsync(page);
+            await ModalCoordinator.PushModalAsync(Navigation, page, animated: true);
         });
         header.Add(addBtn, 2, 0);
 

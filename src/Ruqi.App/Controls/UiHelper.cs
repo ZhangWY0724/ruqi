@@ -156,26 +156,27 @@ public static class UiHelper
         view.GestureRecognizers.Add(tap);
     }
 
-    /// <summary>
-    /// 安全弹出指定模态页：仅当目标页位于当前模态栈顶时执行 PopModalAsync，
-    /// 并留出极短缓冲等待原生导航事务彻底完成，避免连续弹窗时误弹新页或界面卡死。
-    /// </summary>
-    public static async Task PopModalSafelyAsync(Page modalPage)
+    public static void AttachClickAsync(Button button, Func<Task> action)
     {
-        try
+        var busy = false;
+        button.Clicked += async (_, _) =>
         {
-            var nav = modalPage.Navigation;
-            var stack = nav?.ModalStack;
-            if (stack is not null && stack.Count > 0 && ReferenceEquals(stack[^1], modalPage))
+            if (busy) return;
+            busy = true;
+            try
             {
-                await nav!.PopModalAsync(animated: false);
+                await action();
             }
-        }
-        catch
-        {
-            // 忽略重复关闭或页面已卸载异常
-        }
-
-        await Task.Delay(35);
+            finally
+            {
+                busy = false;
+            }
+        };
     }
+
+    /// <summary>
+    /// 兼容入口：委托给全站 ModalCoordinator 安全弹出指定模态页。
+    /// </summary>
+    public static Task PopModalSafelyAsync(Page modalPage)
+        => ModalCoordinator.PopModalAsync(modalPage, animated: false);
 }

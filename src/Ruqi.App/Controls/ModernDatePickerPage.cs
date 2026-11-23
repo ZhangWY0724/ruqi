@@ -5,9 +5,8 @@ namespace Ruqi.App.Controls;
 /// <summary>
 /// 现代冷白底部圆角日期选择器，彻底替代 Android 原生 DatePicker 弹窗。
 /// </summary>
-public sealed class ModernDatePickerPage : ContentPage
+public sealed class ModernDatePickerPage : ResultModalPage<DateOnly?>
 {
-    private readonly TaskCompletionSource<DateOnly?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly DateOnly? _minDate;
     private readonly DateOnly? _maxDate;
 
@@ -18,9 +17,9 @@ public sealed class ModernDatePickerPage : ContentPage
     private int _displayYear;
     private int _displayMonth;
     private DateOnly _selectedDate;
-    private bool _closed;
 
     private ModernDatePickerPage(string title, DateOnly initialDate, DateOnly? minDate, DateOnly? maxDate)
+        : base(cancelResult: null, backdropAlpha: 0.40f)
     {
         _minDate = minDate;
         _maxDate = maxDate;
@@ -31,9 +30,6 @@ public sealed class ModernDatePickerPage : ContentPage
 
         _displayYear = _selectedDate.Year;
         _displayMonth = _selectedDate.Month;
-
-        BackgroundColor = Colors.Black.WithAlpha(0.40f);
-        Shell.SetNavBarIsVisible(this, false);
 
         var root = new Grid
         {
@@ -344,29 +340,14 @@ public sealed class ModernDatePickerPage : ContentPage
         return UiHelper.CreateCircleIconButton(glyph, onTap, Color.FromArgb("#F4F6FB"), UiHelper.TextSecondary, 32);
     }
 
-    protected override bool OnBackButtonPressed()
-    {
-        _ = CloseAsync(null);
-        return true;
-    }
-
-    private async Task CloseAsync(DateOnly? result)
-    {
-        if (_closed) return;
-        _closed = true;
-        await UiHelper.PopModalSafelyAsync(this);
-        _tcs.TrySetResult(result);
-    }
-
-    public static async Task<DateOnly?> PickAsync(
-        INavigation navigation,
+    public static Task<DateOnly?> PickAsync(
+        INavigation? navigation,
         string title,
         DateOnly initialDate,
         DateOnly? minDate = null,
         DateOnly? maxDate = null)
     {
         var page = new ModernDatePickerPage(title, initialDate, minDate, maxDate);
-        await navigation.PushModalAsync(page, animated: false);
-        return await page._tcs.Task;
+        return ModalCoordinator.ShowAsync(navigation, page, fallbackResult: null);
     }
 }

@@ -275,7 +275,7 @@ public sealed class HomePage : ContentPage
             HeightRequest = 46,
             Margin = new Thickness(0, 6, 0, 0)
         };
-        addBtn.Clicked += async (_, _) => await OpenAddSubscriptionAsync();
+        UiHelper.AttachClickAsync(addBtn, OpenAddSubscriptionAsync);
 
         var card = UiHelper.CreateCard(new VerticalStackLayout
         {
@@ -590,7 +590,7 @@ public sealed class HomePage : ContentPage
             MinimumHeightRequest = 34,
             VerticalOptions = LayoutOptions.Center
         };
-        confirmBtn.Clicked += async (_, _) => await _confirmSheet.OpenAsync(item.Occurrence.Id);
+        UiHelper.AttachClickAsync(confirmBtn, () => _confirmSheet.OpenAsync(item.Occurrence.Id));
         grid.Add(confirmBtn, 2, 0);
 
         var card = UiHelper.CreateCard(grid, new Thickness(14, 12), 16);
@@ -684,7 +684,7 @@ public sealed class HomePage : ContentPage
     private async Task OpenAddSubscriptionAsync()
     {
         var page = ActivatorUtilities.CreateInstance<SubscriptionFormPage>(_services);
-        await Navigation.PushModalAsync(page);
+        await ModalCoordinator.PushModalAsync(Navigation, page, animated: true);
     }
 
     private async Task OpenSubscriptionDetailAsync(string subscriptionId)
