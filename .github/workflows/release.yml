@@ -172,7 +172,7 @@ jobs:
           fi
           dotnet publish src/Ruqi.App/Ruqi.App.csproj \
             -f net10.0-android \
-            -p:TargetFrameworks=net10.0-android \
+            -p:RuqiTargetFramework=net10.0-android \
             -c Release \
             -r android-arm64 \
             -p:AndroidPackageFormat=apk \
@@ -212,7 +212,7 @@ jobs:
         run: |
           dotnet publish src/Ruqi.App/Ruqi.App.csproj `
             -f net10.0-windows10.0.19041.0 `
-            -p:TargetFrameworks=net10.0-windows10.0.19041.0 `
+            -p:RuqiTargetFramework=net10.0-windows10.0.19041.0 `
             -c Release `
             -r win-x64 `
             -p:SelfContained=true `
@@ -254,7 +254,7 @@ jobs:
           set -euo pipefail
           dotnet publish src/Ruqi.App/Ruqi.App.csproj \
             -f net10.0-maccatalyst \
-            -p:TargetFrameworks=net10.0-maccatalyst \
+            -p:RuqiTargetFramework=net10.0-maccatalyst \
             -c Release \
             -r maccatalyst-arm64 \
             -p:CreatePackage=false \
@@ -321,7 +321,7 @@ jobs:
 
             dotnet publish src/Ruqi.App/Ruqi.App.csproj \
               -f net10.0-ios \
-              -p:TargetFrameworks=net10.0-ios \
+              -p:RuqiTargetFramework=net10.0-ios \
               -c Release \
               -r ios-arm64 \
               -p:ArchiveOnBuild=true \
@@ -334,7 +334,7 @@ jobs:
             echo "未配置 Apple 签名证书 Secrets，生成未签名 IPA（供自签/AltStore/巨魔工具使用）..."
             dotnet publish src/Ruqi.App/Ruqi.App.csproj \
               -f net10.0-ios \
-              -p:TargetFrameworks=net10.0-ios \
+              -p:RuqiTargetFramework=net10.0-ios \
               -c Release \
               -r ios-arm64 \
               -p:EnableCodeSigning=false \

@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks Condition="'$(TargetFrameworks)' == '' and $([MSBuild]::IsOSPlatform('linux'))">net10.0-android</TargetFrameworks>
-		<TargetFrameworks Condition="'$(TargetFrameworks)' == '' and $([MSBuild]::IsOSPlatform('osx'))">net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="'$(TargetFrameworks)' == '' and $([MSBuild]::IsOSPlatform('windows'))">net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks Condition="'$(RuqiTargetFramework)' != ''">$(RuqiTargetFramework)</TargetFrameworks>
+		<TargetFrameworks Condition="'$(RuqiTargetFramework)' == '' and $([MSBuild]::IsOSPlatform('linux'))">net10.0-android</TargetFrameworks>
+		<TargetFrameworks Condition="'$(RuqiTargetFramework)' == '' and $([MSBuild]::IsOSPlatform('osx'))">net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="'$(RuqiTargetFramework)' == '' and $([MSBuild]::IsOSPlatform('windows'))">net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Ruqi.App</RootNamespace>
