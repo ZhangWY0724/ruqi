@@ -241,12 +241,34 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.tag }}
 
+      - name: 自动选择最高版本 Xcode 并检测主版本
+        id: xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          BEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -n 1)
+          if [[ -n "${BEST_XCODE}" ]]; then
+            sudo xcode-select -s "${BEST_XCODE}"
+          fi
+          xcodebuild -version
+          XCODE_VER=$(xcodebuild -version | head -n 1 | awk '{print $2}')
+          XCODE_MAJOR="${XCODE_VER%%.*}"
+          echo "major=${XCODE_MAJOR}" >> "${GITHUB_OUTPUT}"
+          echo "已选定 Xcode ${XCODE_VER} (${BEST_XCODE})"
+
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '10.0.115'
 
-      - name: 安装 maui-maccatalyst 工作负载
-        run: dotnet workload install maui-maccatalyst
+      - name: 安装匹配 Xcode 版本的 maui-maccatalyst 工作负载
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.xcode.outputs.major }}" -ge 27 ]]; then
+            dotnet workload install maui-maccatalyst
+          else
+            dotnet workload install maui-maccatalyst --version 10.0.105
+          fi
 
       - name: 编译并打包 macOS .app.zip
         shell: bash
@@ -282,12 +304,34 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.tag }}
 
+      - name: 自动选择最高版本 Xcode 并检测主版本
+        id: xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          BEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -n 1)
+          if [[ -n "${BEST_XCODE}" ]]; then
+            sudo xcode-select -s "${BEST_XCODE}"
+          fi
+          xcodebuild -version
+          XCODE_VER=$(xcodebuild -version | head -n 1 | awk '{print $2}')
+          XCODE_MAJOR="${XCODE_VER%%.*}"
+          echo "major=${XCODE_MAJOR}" >> "${GITHUB_OUTPUT}"
+          echo "已选定 Xcode ${XCODE_VER} (${BEST_XCODE})"
+
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '10.0.115'
 
-      - name: 安装 maui-ios 工作负载
-        run: dotnet workload install maui-ios
+      - name: 安装匹配 Xcode 版本的 maui-ios 工作负载
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.xcode.outputs.major }}" -ge 27 ]]; then
+            dotnet workload install maui-ios
+          else
+            dotnet workload install maui-ios --version 10.0.105
+          fi
 
       - name: 编译并封装 iOS IPA（自动判断是否具备签名证书）
         shell: bash
