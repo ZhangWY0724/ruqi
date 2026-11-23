@@ -1,0 +1,54 @@
+# 预设图标来源
+
+图标以 128 × 128 PNG 随应用打包。文件名中的键对应内置目录条目的 `IconKey`。商店链接指向所用图标的应用页面。
+
+| 图标键 | 来源 |
+| --- | --- |
+| `adobe` | [来源](https://www.adobe.com/cc-shared/assets/img/product-icons/svg/creative-cloud.svg) |
+| `aliyun_drive` | [来源](https://apps.apple.com/cn/app/id1494661473) |
+| `apple_music` | [来源](https://apps.apple.com/us/app/id1108187390) |
+| `baidu_pan` | [来源](https://apps.apple.com/cn/app/id547166701) |
+| `bilibili` | [来源](https://apps.apple.com/cn/app/id736536022) |
+| `chatgpt` | [来源](https://apps.apple.com/us/app/id6448311069) |
+| `china_mobile` | [来源](https://apps.apple.com/cn/app/id583700738) |
+| `china_telecom` | [来源](https://apps.apple.com/cn/app/id513836029) |
+| `china_unicom` | [来源](https://apps.apple.com/cn/app/id416457422) |
+| `claude` | [来源](https://apps.apple.com/us/app/id6473753684) |
+| `cursor` | [来源](https://unpkg.com/@lobehub/icons-static-png@latest/light/cursor.png) |
+| `dida` | [来源](https://apps.apple.com/cn/app/id626144601) |
+| `eleme` | [来源](https://apps.apple.com/cn/app/id507161324) |
+| `figma` | [来源](https://apps.apple.com/us/app/id1152747299) |
+| `gemini` | [来源](https://apps.apple.com/us/app/id6477489729) |
+| `github` | [来源](https://unpkg.com/@lobehub/icons-static-png@latest/light/githubcopilot.png) |
+| `google_one` | [来源](https://apps.apple.com/us/app/id1451784328) |
+| `icloud` | [来源](https://www.icloud.com/favicon.ico) |
+| `iqiyi` | [来源](https://apps.apple.com/cn/app/id393765873) |
+| `jd` | [来源](https://apps.apple.com/cn/app/id414245413) |
+| `keep` | [来源](https://apps.apple.com/cn/app/id952694580) |
+| `kimi` | [来源](https://apps.apple.com/cn/app/id6474233312) |
+| `mango` | [来源](https://apps.apple.com/cn/app/id629774477) |
+| `meituan` | [来源](https://apps.apple.com/cn/app/id423084029) |
+| `microsoft365` | [来源](https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/microsoft-365.png) |
+| `midjourney` | [来源](https://unpkg.com/@lobehub/icons-static-png@latest/light/midjourney.png) |
+| `netease_music` | [来源](https://apps.apple.com/cn/app/id590338362) |
+| `netflix` | [来源](https://apps.apple.com/us/app/id363590051) |
+| `nintendo` | [来源](https://apps.apple.com/us/app/id1234806557) |
+| `notion` | [来源](https://apps.apple.com/cn/app/id1232780281) |
+| `onepassword` | [来源](https://apps.apple.com/us/app/id1511601750) |
+| `perplexity` | [来源](https://apps.apple.com/us/app/id1668000334) |
+| `playstation` | [来源](https://apps.apple.com/us/app/id410896080) |
+| `qq_music` | [来源](https://apps.apple.com/cn/app/id414603431) |
+| `quark` | [来源](https://apps.apple.com/cn/app/id1160172628) |
+| `sams` | [来源](https://apps.apple.com/cn/app/id818237113) |
+| `setapp` | [来源](https://setapp.com/apple-touch-icon.png) |
+| `spotify` | [来源](https://apps.apple.com/us/app/id324684580) |
+| `state_grid` | [来源](https://apps.apple.com/cn/app/id1438998315) |
+| `taobao` | [来源](https://apps.apple.com/cn/app/id387682726) |
+| `tencent_video` | [来源](https://apps.apple.com/cn/app/id458318329) |
+| `uu` | [来源](https://apps.apple.com/cn/app/id1319788668) |
+| `weread` | [来源](https://apps.apple.com/cn/app/id952059546) |
+| `wps` | [来源](https://apps.apple.com/cn/app/id599852710) |
+| `xbox` | [来源](https://apps.apple.com/us/app/id736179781) |
+| `youku` | [来源](https://apps.apple.com/cn/app/id336141475) |
+| `youtube` | [来源](https://apps.apple.com/us/app/id544007664) |
+| `zhihu` | [来源](https://apps.apple.com/cn/app/id432274380) |

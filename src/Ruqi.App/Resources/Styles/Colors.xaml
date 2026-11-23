@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- 如期 冷白浅靛蓝主题色板 -->
+    <Color x:Key="Primary">#5B6CF9</Color>
+    <Color x:Key="PrimaryDark">#4858E6</Color>
+    <Color x:Key="PrimarySoft">#EEF0FF</Color>
+    <Color x:Key="PrimaryBorder">#DCE0FF</Color>
+    <Color x:Key="PrimaryDarkText">#182033</Color>
+    <Color x:Key="Secondary">#E8ECFF</Color>
+    <Color x:Key="SecondaryDarkText">#5B6CF9</Color>
+    <Color x:Key="Tertiary">#3E4ED8</Color>
+
+    <Color x:Key="PageBackground">#F4F6FB</Color>
+    <Color x:Key="CardSurface">#FFFFFF</Color>
+    <Color x:Key="CardBorder">#E8ECF5</Color>
+    <Color x:Key="SubtleSurface">#F1F4FA</Color>
+    <Color x:Key="Divider">#EDF0F7</Color>
+
+    <Color x:Key="TextPrimary">#182033</Color>
+    <Color x:Key="TextSecondary">#68738A</Color>
+    <Color x:Key="TextMuted">#98A2B3</Color>
+
+    <!-- 业务状态语义色 -->
+    <Color x:Key="StatusPlanned">#5B6CF9</Color>
+    <Color x:Key="StatusPlannedBg">#EEF0FF</Color>
+    <Color x:Key="StatusPending">#E89B2D</Color>
+    <Color x:Key="StatusPendingBg">#FFF5E5</Color>
+    <Color x:Key="StatusConfirmed">#2EA872</Color>
+    <Color x:Key="StatusConfirmedBg">#EAF8F1</Color>
+    <Color x:Key="StatusMuted">#8A94A6</Color>
+    <Color x:Key="StatusMutedBg">#F0F2F7</Color>
+    <Color x:Key="Danger">#E04F5F</Color>
+    <Color x:Key="DangerBg">#FFF0F2</Color>
+
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Black">Black</Color>
+    <Color x:Key="Magenta">#D600AA</Color>
+    <Color x:Key="MidnightBlue">#190649</Color>
+    <Color x:Key="OffBlack">#1F1F1F</Color>
+
+    <Color x:Key="Gray100">#EDF0F7</Color>
+    <Color x:Key="Gray200">#DDE2EE</Color>
+    <Color x:Key="Gray300">#B8C0D0</Color>
+    <Color x:Key="Gray400">#98A2B3</Color>
+    <Color x:Key="Gray500">#68738A</Color>
+    <Color x:Key="Gray600">#475467</Color>
+    <Color x:Key="Gray900">#182033</Color>
+    <Color x:Key="Gray950">#101828</Color>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
+    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
+    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
+    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
+    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
+    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
+    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
+    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+</ResourceDictionary>

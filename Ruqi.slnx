@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ruqi.App/Ruqi.App.csproj" />
+    <Project Path="src/Ruqi.Core/Ruqi.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ruqi.Core.Tests/Ruqi.Core.Tests.csproj" />
+  </Folder>
+</Solution>
