@@ -1,84 +1,63 @@
-# 如期（Ruqi）
-
-**如期**是一款基于 `.NET 10 MAUI` + `SQLite` 构建的纯本地离线、免登录人民币订阅管理与续费提醒账本，支持 **Android / Windows / macOS / iOS** 全平台。
-
-- **纯本地离线**：零云端服务器、无需登录，数据仅保存在本机 SQLite 数据库中，支持通过系统文件选择器导出与原子恢复 JSON 备份。
-- **核心功能**：离线预设应用目录、跨应用全局常用账号池、付款渠道管理、月末/闰年锚定周期引擎、漏开多期自动补齐与幂等扣款确认、手工补录账单、一次性到期顺手记账、月度/年度支出统计与本地定时提醒。
-
----
-
-## 工程结构
-
-- `src/Ruqi.Core`：纯 C# 领域模型、周期算法、SQLite 数据层、统计与事务性 JSON 备份恢复引擎。
-- `src/Ruqi.App`：`.NET 10 MAUI` 全平台客户端（Android / Windows / macOS / iOS）。
-- `tests/Ruqi.Core.Tests`：核心领域与 SQLite 集成测试。
-- `.github/workflows/ci.yml`：`main` 分支 push / PR 自动运行单元测试。
-- `.github/workflows/release.yml`：全平台自动递增版本号、打 Tag、并行打包并发布 GitHub Release。
+<div align="center">
+  <img src="./如期_App图标_矢量版.svg" width="112" alt="如期 App 图标" />
+  <h1>如期（Ruqi）</h1>
+  <p><strong>续费如期，心中有数</strong></p>
+  <p>一款纯本地、免登录、无广告的跨平台人民币订阅管理与续费提醒账本</p>
+</div>
 
 ---
 
-## GitHub 全自动发版指南
+## 产品简介
 
-### 1. 关联并推送到 GitHub
+**如期**致力于帮你用最轻盈的方式管好每一笔周期性订阅。打开即可直观看到下一笔什么时候扣款、开通在哪个账号上、未来 30 天预计支出以及本月实际花了多少。
 
-在 GitHub 新建一个空仓库后，在项目根目录执行：
-
-```bash
-git remote add origin https://github.com/<你的用户名>/<你的仓库名>.git
-git push -u origin main
-```
-
-### 2. 触发自动递增版本号与全平台 Release（两种方式）
-
-- **方式一（推荐 · 一键按钮）**：打开 GitHub 仓库 → **Actions** → **全平台自动构建与发版 (Release)** → 点击 **Run workflow**：
-  - 选择 `bump`（`patch` 递增修订号如 `1.0.0 → 1.0.1`、`minor` 递增次版本号、`major` 递增主版本号），首次无 Tag 时默认发布 `v1.0.0`；
-  - 也可直接填写 `custom_version` 指定具体版本号。
-  - 流水线将自动打 Tag、跑单元测试、并行编译 4 平台安装包、生成 `SHA256SUMS.txt` 与更新日志，并发布到 **Releases**。
-- **方式二（推 Tag 触发）**：
-  ```bash
-  git tag v1.0.0
-  git push origin v1.0.0
-  ```
-
-### 3. 可选签名 Secrets 配置（不配也能直接跑通）
-
-进入 GitHub 仓库 → **Settings → Secrets and variables → Actions** 按需添加：
-
-#### Android 固定正式签名（推荐配置，便于后续版本无缝覆盖升级）
-1. 本地生成一次正式签名密钥库（妥善保管，切勿提交到仓库）：
-   ```powershell
-   keytool -genkey -v -keystore ruqi-release.keystore -alias ruqi -keyalg RSA -keysize 2048 -validity 10000
-   ```
-2. 转为 Base64：
-   ```powershell
-   [Convert]::ToBase64String([IO.File]::ReadAllBytes("ruqi-release.keystore")) | Set-Clipboard
-   ```
-3. 在 GitHub Secrets 中配置以下 4 项：
-   - `ANDROID_KEYSTORE_BASE64`：上一步复制的 Base64 字符串
-   - `ANDROID_KEYSTORE_PASSWORD`：密钥库密码
-   - `ANDROID_KEY_ALIAS`：`ruqi`
-   - `ANDROID_KEY_PASSWORD`：密钥密码
-
-> 未配置上述 Secrets 时，流水线会自动使用默认开发签名打包 APK，保证零配置跑通。
-
-#### iOS 正式签名（可选）
-- 未配置时，流水线会自动编译并封装 `Ruqi-vX.Y.Z-ios-arm64-unsigned.ipa`（可用于 AltStore / Sideloadly / 巨魔等工具安装）。
-- 拥有 Apple Developer 证书后，在 GitHub Secrets 中配置以下 3 项即可自动切换为正式签名 `.ipa`：
-  - `IOS_P12_BASE64`
-  - `IOS_P12_PASSWORD`
-  - `IOS_PROVISION_PROFILE_BASE64`
+所有数据仅保存在你的本机数据库中，无需注册账号、无云端服务器、不联网上传任何隐私信息。
 
 ---
 
-## 本地开发与构建命令
+## 核心特性
 
-```powershell
-# 运行核心单元测试
-dotnet test tests/Ruqi.Core.Tests/Ruqi.Core.Tests.csproj
+- **一目了然的首页概览**
+  - 30 天刻度弧形倒计时表盘，优先高亮当天待确认扣款与最近续费项；
+  - 直观展示「本月已付」「未来 30 天预计」「月均成本」三项核心指标，以及待确认与即将续费清单。
+- **开箱即用的离线目录与多账号管理**
+  - 内置 50+ 国内外高频订阅服务目录与统一风格品牌图标，断网可搜索预填；
+  - 全局跨应用「常用账号池」（手机号 / 邮箱 + 简称）与付款渠道管理，支持「复制为新订阅」，同一应用下的个人号与工作号互不干扰。
+- **精准周期推算与幂等记账**
+  - 支持月付、年付、每 N 天、每 N 个月及一次性到期；严格保留锚定日号（如 31 日跨平年 2 月自动落 2 月 28 日、3 月恢复 31 日）；
+  - 到期先标记为「待确认」，支持「确认记账」与「本期未扣款」并防止重复入账；支持随时「+ 补录账单」与一次性项目顺手记账；
+  - 完整生命周期管理：标记不再续费（保留有效期提醒）、恢复续费、删除订阅（可选保留或连带删除历史账单）。
+- **列表 / 日历双视图与多维度统计**
+  - 订阅页支持「列表 | 日历」一键切换，日历以四色圆点区分计划续费、待确认、已扣款与仅到期；
+  - 统计页支持月度 / 年度切换、实付趋势柱状图，以及「分类 → 应用 → 账号」三级可展开明细。
+- **本地定时提醒与纯本地数据备份**
+  - 支持续费前提前 N 天与当天定时本地提醒，自定义提醒时间，支持设备重启后自动重排；
+  - 通过系统文件选择器导出与恢复整份 JSON 账本，换机迁移轻松可控。
 
-# 打包 Android arm64 Release APK
-dotnet publish src/Ruqi.App/Ruqi.App.csproj -f net10.0-android -c Release -r android-arm64 -p:AndroidPackageFormat=apk
+---
 
-# 打包 Windows x64 免安装绿色便携版
-dotnet publish src/Ruqi.App/Ruqi.App.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:SelfContained=true -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true
-```
+## 支持平台与下载
+
+前往 [GitHub Releases](https://github.com/ZhangWY0724/ruqi/releases) 下载对应平台的最新安装包：
+
+- **Android**：下载 `*-android-arm64.apk` 直接安装（最低支持 Android 8.0）。
+- **Windows**：下载 `*-windows-x64.zip` 解压后双击 `Ruqi.App.exe` 即可运行（绿色免安装）。
+- **macOS**：下载 `*-macos-arm64.app.zip` 解压运行（首次打开可右键选择「打开」）。
+- **iOS**：提供 `*.ipa` 安装包。
+
+---
+
+## 隐私与安全承诺
+
+1. **纯本地离线**：不收集、不上传任何订阅与账单数据，Android 版本不含网络访问权限。
+2. **最小必要权限**：仅在用户主动启用提醒或执行备份恢复时申请通知权限或调用系统文件选择器。
+3. **账本工具声明**：本应用仅记录本地订阅计划与支出，不自动扣款，也不会代为取消第三方平台的自动续费。
+
+---
+
+## 技术栈
+
+- `.NET 10 MAUI`（Android / Windows / macOS / iOS）
+- `Microsoft.Data.Sqlite`（本地 SQLite 持久化）
+- `CommunityToolkit.Mvvm` / `CommunityToolkit.Maui`
+- `xUnit`（核心领域与 SQLite 集成测试）
