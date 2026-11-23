@@ -190,54 +190,13 @@ jobs:
           name: artifact-android
           path: artifacts/*.apk
 
-  # 4. Windows 绿色免安装版构建
-  build-windows:
-    name: 构建 Windows 便携版
-    needs: [ prepare, test-core ]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.prepare.outputs.tag }}
-
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: 安装 maui-windows 工作负载
-        run: dotnet workload install maui-windows
-
-      - name: 发布 Windows x64 绿色便携版并压缩
-        shell: pwsh
-        run: |
-          dotnet publish src/Ruqi.App/Ruqi.App.csproj `
-            -f net10.0-windows10.0.19041.0 `
-            -p:RuqiTargetFramework=net10.0-windows10.0.19041.0 `
-            -c Release `
-            -r win-x64 `
-            -p:SelfContained=true `
-            -p:WindowsPackageType=None `
-            -p:WindowsAppSDKSelfContained=true `
-            -p:ApplicationDisplayVersion="${{ needs.prepare.outputs.version }}" `
-            -p:ApplicationVersion="${{ needs.prepare.outputs.build_number }}" `
-            -o publish_win
-
-          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          Compress-Archive -Path "publish_win\*" -DestinationPath "artifacts\Ruqi-${{ needs.prepare.outputs.tag }}-windows-x64.zip" -Force
-
-      - name: 上传 Windows 产物
-        uses: actions/upload-artifact@v7
-        with:
-          name: artifact-windows
-          path: artifacts/*.zip
-
-  # 5. 汇总产物并自动发布 GitHub Release
+  # 4. 汇总产物并自动发布 GitHub Release
   publish-release:
     name: 发布 GitHub Release
-    needs: [ prepare, build-android, build-windows ]
+    needs: [ prepare, build-android ]
     runs-on: ubuntu-latest
     steps:
-      - name: 下载全部平台产物
+      - name: 下载构建产物
         uses: actions/download-artifact@v8
         with:
           path: release-assets
@@ -264,7 +223,6 @@ jobs:
 
             ### 下载与安装说明
             - **Android**：下载 `Ruqi-${{ needs.prepare.outputs.tag }}-android-arm64.apk` 直接安装（最低 Android 8.0）。
-            - **Windows**：下载 `Ruqi-${{ needs.prepare.outputs.tag }}-windows-x64.zip` 解压后双击 `Ruqi.App.exe` 运行（免安装绿色版）。
 
             ---
           files: release-assets/*
