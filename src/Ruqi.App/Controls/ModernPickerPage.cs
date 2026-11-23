@@ -9,7 +9,7 @@ public sealed record PickerOption(string Value, string Title, string? Subtitle =
 /// </summary>
 public sealed class ModernPickerPage : ContentPage
 {
-    private readonly TaskCompletionSource<string?> _tcs = new();
+    private readonly TaskCompletionSource<string?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private bool _closed;
 
     private ModernPickerPage(
@@ -185,15 +185,8 @@ public sealed class ModernPickerPage : ContentPage
     {
         if (_closed) return;
         _closed = true;
+        await UiHelper.PopModalSafelyAsync(this);
         _tcs.TrySetResult(result);
-        try
-        {
-            await Navigation.PopModalAsync(animated: false);
-        }
-        catch
-        {
-            // 忽略重复关闭
-        }
     }
 
     public static async Task<string?> PickAsync(

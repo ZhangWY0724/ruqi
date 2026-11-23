@@ -7,7 +7,7 @@ namespace Ruqi.App.Controls;
 /// </summary>
 public sealed class ModernTimePickerPage : ContentPage
 {
-    private readonly TaskCompletionSource<TimeOnly?> _tcs = new();
+    private readonly TaskCompletionSource<TimeOnly?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly Label _previewLabel;
     private readonly HorizontalStackLayout _hourBar;
     private readonly HorizontalStackLayout _minuteBar;
@@ -234,15 +234,8 @@ public sealed class ModernTimePickerPage : ContentPage
     {
         if (_closed) return;
         _closed = true;
+        await UiHelper.PopModalSafelyAsync(this);
         _tcs.TrySetResult(result);
-        try
-        {
-            await Navigation.PopModalAsync(animated: false);
-        }
-        catch
-        {
-            // 忽略重复关闭
-        }
     }
 
     public static async Task<TimeOnly?> PickAsync(INavigation navigation, string title, TimeOnly initialTime)

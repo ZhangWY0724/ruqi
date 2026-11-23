@@ -21,7 +21,7 @@ public static class ModernDialogPage
         var nav = ResolveNav(navigation);
         if (nav is null) return Task.CompletedTask;
 
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var page = new CenteredAlertPage(title, message, okText, null, isDanger, _ => tcs.TrySetResult());
         return PushAndAwaitAsync(nav, page, tcs.Task);
     }
@@ -37,7 +37,7 @@ public static class ModernDialogPage
         var nav = ResolveNav(navigation);
         if (nav is null) return Task.FromResult(false);
 
-        var tcs = new TaskCompletionSource<bool>();
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var page = new CenteredAlertPage(title, message, confirmText, cancelText, isDanger, ok => tcs.TrySetResult(ok));
         return PushAndAwaitAsync(nav, page, tcs.Task);
     }
@@ -54,7 +54,7 @@ public static class ModernDialogPage
         var nav = ResolveNav(navigation);
         if (nav is null) return Task.FromResult<string?>(null);
 
-        var tcs = new TaskCompletionSource<string?>();
+        var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var page = new SinglePromptSheetPage(title, subtitle, placeholder, initialValue, confirmText, keyboard ?? Keyboard.Default, v => tcs.TrySetResult(v));
         return PushAndAwaitAsync(nav, page, tcs.Task);
     }
@@ -68,7 +68,7 @@ public static class ModernDialogPage
         var nav = ResolveNav(navigation);
         if (nav is null) return Task.FromResult<AccountEditResult?>(null);
 
-        var tcs = new TaskCompletionSource<AccountEditResult?>();
+        var tcs = new TaskCompletionSource<AccountEditResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var page = new AccountEditorSheetPage(title, initialIdentifier, initialNickname, r => tcs.TrySetResult(r));
         return PushAndAwaitAsync(nav, page, tcs.Task);
     }
@@ -84,7 +84,7 @@ public static class ModernDialogPage
         var nav = ResolveNav(navigation);
         if (nav is null) return Task.FromResult<BillingEditResult?>(null);
 
-        var tcs = new TaskCompletionSource<BillingEditResult?>();
+        var tcs = new TaskCompletionSource<BillingEditResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var page = new BillingEditorSheetPage(title, initialAmountCents, initialDate, initialNote, maxDate, r => tcs.TrySetResult(r));
         return PushAndAwaitAsync(nav, page, tcs.Task);
     }
@@ -221,8 +221,8 @@ public static class ModernDialogPage
         {
             if (_closed) return;
             _closed = true;
+            await UiHelper.PopModalSafelyAsync(this);
             _complete(result);
-            try { await Navigation.PopModalAsync(animated: false); } catch { }
         }
     }
 
@@ -277,8 +277,8 @@ public static class ModernDialogPage
         {
             if (_closed) return;
             _closed = true;
+            await UiHelper.PopModalSafelyAsync(this);
             _complete(result);
-            try { await Navigation.PopModalAsync(animated: false); } catch { }
         }
     }
 
@@ -364,8 +364,8 @@ public static class ModernDialogPage
         {
             if (_closed) return;
             _closed = true;
+            await UiHelper.PopModalSafelyAsync(this);
             _complete(result);
-            try { await Navigation.PopModalAsync(animated: false); } catch { }
         }
     }
 
@@ -520,8 +520,8 @@ public static class ModernDialogPage
         {
             if (_closed) return;
             _closed = true;
+            await UiHelper.PopModalSafelyAsync(this);
             _complete(result);
-            try { await Navigation.PopModalAsync(animated: false); } catch { }
         }
     }
 

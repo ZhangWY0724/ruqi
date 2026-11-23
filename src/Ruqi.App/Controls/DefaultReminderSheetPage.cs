@@ -8,7 +8,7 @@ namespace Ruqi.App.Controls;
 /// </summary>
 public sealed class DefaultReminderSheetPage : ContentPage
 {
-    private readonly TaskCompletionSource<AppSettings?> _tcs = new();
+    private readonly TaskCompletionSource<AppSettings?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly AppSettings _working;
 
     private readonly Switch _beforeSwitch;
@@ -313,15 +313,8 @@ public sealed class DefaultReminderSheetPage : ContentPage
     {
         if (_closed) return;
         _closed = true;
+        await UiHelper.PopModalSafelyAsync(this);
         _tcs.TrySetResult(result);
-        try
-        {
-            await Navigation.PopModalAsync(animated: false);
-        }
-        catch
-        {
-            // 忽略重复关闭
-        }
     }
 
     public static async Task<AppSettings?> EditAsync(INavigation navigation, AppSettings current)

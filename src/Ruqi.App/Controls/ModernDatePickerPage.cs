@@ -7,7 +7,7 @@ namespace Ruqi.App.Controls;
 /// </summary>
 public sealed class ModernDatePickerPage : ContentPage
 {
-    private readonly TaskCompletionSource<DateOnly?> _tcs = new();
+    private readonly TaskCompletionSource<DateOnly?> _tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly DateOnly? _minDate;
     private readonly DateOnly? _maxDate;
 
@@ -354,15 +354,8 @@ public sealed class ModernDatePickerPage : ContentPage
     {
         if (_closed) return;
         _closed = true;
+        await UiHelper.PopModalSafelyAsync(this);
         _tcs.TrySetResult(result);
-        try
-        {
-            await Navigation.PopModalAsync(animated: false);
-        }
-        catch
-        {
-            // 忽略重复关闭
-        }
     }
 
     public static async Task<DateOnly?> PickAsync(

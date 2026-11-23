@@ -138,8 +138,44 @@ public static class UiHelper
 
     public static void AttachTapAsync(View view, Func<Task> action)
     {
+        var busy = false;
         var tap = new TapGestureRecognizer();
-        tap.Tapped += async (_, _) => await action();
+        tap.Tapped += async (_, _) =>
+        {
+            if (busy) return;
+            busy = true;
+            try
+            {
+                await action();
+            }
+            finally
+            {
+                busy = false;
+            }
+        };
         view.GestureRecognizers.Add(tap);
+    }
+
+    /// <summary>
+    /// 安全弹出指定模态页：仅当目标页位于当前模态栈顶时执行 PopModalAsync，
+    /// 并留出极短缓冲等待原生导航事务彻底完成，避免连续弹窗时误弹新页或界面卡死。
+    /// </summary>
+    public static async Task PopModalSafelyAsync(Page modalPage)
+    {
+        try
+        {
+            var nav = modalPage.Navigation;
+            var stack = nav?.ModalStack;
+            if (stack is not null && stack.Count > 0 && ReferenceEquals(stack[^1], modalPage))
+            {
+                await nav!.PopModalAsync(animated: false);
+            }
+        }
+        catch
+        {
+            // 忽略重复关闭或页面已卸载异常
+        }
+
+        await Task.Delay(35);
     }
 }
