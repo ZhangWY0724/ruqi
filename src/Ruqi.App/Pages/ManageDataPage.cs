@@ -64,11 +64,11 @@ public sealed class ManageDataPage : ContentPage
 
         if (_mode == ManageDataMode.Channels)
         {
-            topBar.Add(UiHelper.CreateCircleIconButton(VectorIconKind.Plus, async () => await AddChannelAsync(), Colors.White, UiHelper.Primary, 36, 2.0f), 2, 0);
+            topBar.Add(UiHelper.CreateCircleIconButtonAsync(VectorIconKind.Plus, AddChannelAsync, Colors.White, UiHelper.Primary, 36, 2.0f), 2, 0);
         }
         else if (_mode == ManageDataMode.Accounts)
         {
-            topBar.Add(UiHelper.CreateCircleIconButton(VectorIconKind.Plus, async () => await AddAccountAsync(), Colors.White, UiHelper.Primary, 36, 2.0f), 2, 0);
+            topBar.Add(UiHelper.CreateCircleIconButtonAsync(VectorIconKind.Plus, AddAccountAsync, Colors.White, UiHelper.Primary, 36, 2.0f), 2, 0);
         }
         else
         {

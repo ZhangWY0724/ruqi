@@ -90,7 +90,7 @@ public sealed class SubscriptionDetailPage : ContentPage
         };
         UiHelper.AttachTapAsync(editChip, OpenEditAsync);
 
-        var deleteBtn = UiHelper.CreateCircleIconButton(VectorIconKind.Trash, async () => await HandleDeleteAsync(), UiHelper.DangerBg, UiHelper.DangerColor, 34, 1.8f);
+        var deleteBtn = UiHelper.CreateCircleIconButtonAsync(VectorIconKind.Trash, HandleDeleteAsync, UiHelper.DangerBg, UiHelper.DangerColor, 34, 1.8f);
 
         topBar.Add(new HorizontalStackLayout
         {

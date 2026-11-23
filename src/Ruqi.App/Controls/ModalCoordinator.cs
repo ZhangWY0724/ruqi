@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Ruqi.App.Controls;
 
 /// <summary>
@@ -37,7 +39,7 @@ public static class ModalCoordinator
 
     /// <summary>
     /// 安全弹出指定模态页。
-    /// 返回 true 表示目标页已离开模态栈；返回 false 表示目标页仍在栈中但被上层页面遮挡，本次未执行弹出。
+    /// 仅在确认目标页已离开模态栈时返回 true。
     /// </summary>
     public static async Task<bool> PopModalAsync(Page modalPage, bool animated = false)
     {
@@ -47,28 +49,26 @@ public static class ModalCoordinator
             var poppedOrAbsent = await MainThread.InvokeOnMainThreadAsync(async () =>
             {
                 var nav = modalPage.Navigation ?? ResolveNavigation();
-                var stack = nav?.ModalStack;
-                if (stack is null || stack.Count == 0)
+                if (nav is null)
                 {
-                    return true;
+                    return false;
                 }
 
-                if (ReferenceEquals(stack[^1], modalPage))
+                var stack = nav.ModalStack;
+                if (stack.Count > 0 && ReferenceEquals(stack[^1], modalPage))
                 {
-                    await nav!.PopModalAsync(animated);
-                    return true;
-                }
-
-                // 若目标页已不在模态栈中，说明已被外部关闭；若仍在栈中说明被上层子弹窗遮挡
-                for (var i = 0; i < stack.Count; i++)
-                {
-                    if (ReferenceEquals(stack[i], modalPage))
+                    try
                     {
-                        return false;
+                        await nav.PopModalAsync(animated);
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceError("关闭模态页失败：{0}", ex);
                     }
                 }
 
-                return true;
+                // 关闭可能被取消，也可能在页面离栈后才抛异常，因此重新读取模态栈。
+                return !nav.ModalStack.Any(page => ReferenceEquals(page, modalPage));
             });
 
             if (poppedOrAbsent)
@@ -79,9 +79,10 @@ public static class ModalCoordinator
 
             return poppedOrAbsent;
         }
-        catch
+        catch (Exception ex)
         {
-            return true;
+            Trace.TraceError("无法确认模态页已关闭：{0}", ex);
+            return false;
         }
         finally
         {
@@ -135,15 +136,17 @@ public abstract class ResultModalPage<TResult> : ContentPage
         if (_isClosed || _isClosing) return;
         _isClosing = true;
 
-        var leftStack = await ModalCoordinator.PopModalAsync(this, animated: false);
-        if (!leftStack)
+        try
         {
-            // 被上层子弹窗暂时遮挡，保留可关闭状态，待子弹窗关闭后仍可正常关闭
-            _isClosing = false;
-            return;
+            if (await ModalCoordinator.PopModalAsync(this, animated: false))
+            {
+                _isClosed = true;
+                _tcs.TrySetResult(result);
+            }
         }
-
-        _isClosed = true;
-        _tcs.TrySetResult(result);
+        finally
+        {
+            _isClosing = false;
+        }
     }
 }

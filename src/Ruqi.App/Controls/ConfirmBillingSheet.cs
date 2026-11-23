@@ -32,7 +32,11 @@ public sealed class ConfirmBillingSheet : Grid
 
     private string? _occurrenceId;
     private DateOnly _selectedPaidDate = DateOnly.FromDateTime(DateTime.Today);
+    private bool _isOpening;
+    private bool _isClosing;
     private bool _busy;
+
+    private bool CanInteract => _overlayRoot.IsVisible && !_isOpening && !_isClosing && !_busy;
 
     public event EventHandler? Completed;
 
@@ -138,7 +142,7 @@ public sealed class ConfirmBillingSheet : Grid
             Color = Colors.Black.WithAlpha(0.42f),
             Opacity = 0
         };
-        UiHelper.AttachTapAsync(_backdrop, CloseAsync);
+        UiHelper.AttachTapAsync(_backdrop, DismissAsync);
 
         _sheetCard = new Border
         {
@@ -162,7 +166,7 @@ public sealed class ConfirmBillingSheet : Grid
 
     private View BuildSheetContent()
     {
-        var closeBtn = UiHelper.CreateCircleIconButton(VectorIconKind.Close, async () => await CloseAsync(), Color.FromArgb("#F1F4FA"), UiHelper.TextSecondary, 32, 1.9f);
+        var closeBtn = UiHelper.CreateCircleIconButtonAsync(VectorIconKind.Close, DismissAsync, Color.FromArgb("#F1F4FA"), UiHelper.TextSecondary, 32, 1.9f);
 
         var titleBar = new Grid
         {
@@ -292,13 +296,23 @@ public sealed class ConfirmBillingSheet : Grid
         dateRow.Add(datePill, 1, 0);
         UiHelper.AttachTapAsync(dateRow, async () =>
         {
+            if (!CanInteract) return;
             var nav = Shell.Current?.Navigation ?? Application.Current?.Windows.FirstOrDefault()?.Page?.Navigation;
             if (nav is null) return;
-            var picked = await ModernDatePickerPage.PickAsync(nav, "选择实际扣款日", _selectedPaidDate);
-            if (picked.HasValue)
+
+            _busy = true;
+            try
             {
-                _selectedPaidDate = picked.Value;
-                _paidDateValueLabel.Text = FormatHelpers.FormatFullDate(_selectedPaidDate);
+                var picked = await ModernDatePickerPage.PickAsync(nav, "选择实际扣款日", _selectedPaidDate);
+                if (picked.HasValue)
+                {
+                    _selectedPaidDate = picked.Value;
+                    _paidDateValueLabel.Text = FormatHelpers.FormatFullDate(_selectedPaidDate);
+                }
+            }
+            finally
+            {
+                _busy = false;
             }
         });
 
@@ -330,66 +344,84 @@ public sealed class ConfirmBillingSheet : Grid
 
     public async Task OpenAsync(string occurrenceId)
     {
-        var occ = await _ledger.GetOccurrenceByIdAsync(occurrenceId);
-        if (occ is null) return;
-
-        if (occ.Status == OccurrenceStatus.Confirmed)
+        if (_isOpening || _isClosing || _busy || _overlayRoot.IsVisible) return;
+        _isOpening = true;
+        try
         {
-            await ModernDialogPage.ShowAlertAsync(null, "已完成记账", "该期次此前已确认记账，无需重复操作。");
-            return;
-        }
+            var occ = await _ledger.GetOccurrenceByIdAsync(occurrenceId);
+            if (occ is null) return;
 
-        if (occ.Status == OccurrenceStatus.Skipped)
-        {
-            await ModernDialogPage.ShowAlertAsync(null, "已标记未扣款", "该期次此前已标记为本期未扣款。");
-            return;
-        }
+            if (occ.Status == OccurrenceStatus.Confirmed)
+            {
+                await ModernDialogPage.ShowAlertAsync(null, "已完成记账", "该期次此前已确认记账，无需重复操作。");
+                return;
+            }
 
-        var sub = await _ledger.GetSubscriptionByIdAsync(occ.SubscriptionId);
-        if (sub is null) return;
+            if (occ.Status == OccurrenceStatus.Skipped)
+            {
+                await ModernDialogPage.ShowAlertAsync(null, "已标记未扣款", "该期次此前已标记为本期未扣款。");
+                return;
+            }
 
-        _occurrenceId = occ.Id;
-        _iconBadge.IconKey = sub.IconKey;
-        _iconBadge.AppName = sub.AppName;
-        _iconBadge.BrandColorHex = sub.BrandColor;
-        _appNameLabel.Text = string.IsNullOrWhiteSpace(sub.TierName) ? sub.AppName : $"{sub.AppName} · {sub.TierName}";
+            var sub = await _ledger.GetSubscriptionByIdAsync(occ.SubscriptionId);
+            if (sub is null) return;
 
-        if (string.IsNullOrWhiteSpace(sub.AccountDisplayCache))
-        {
-            _accountChip.IsVisible = false;
-        }
-        else
-        {
-            _accountChip.IsVisible = true;
+            _occurrenceId = occ.Id;
+            _iconBadge.IconKey = sub.IconKey;
+            _iconBadge.AppName = sub.AppName;
+            _iconBadge.BrandColorHex = sub.BrandColor;
+            _appNameLabel.Text = string.IsNullOrWhiteSpace(sub.TierName) ? sub.AppName : $"{sub.AppName} · {sub.TierName}";
+
+            _accountChip.IsVisible = !string.IsNullOrWhiteSpace(sub.AccountDisplayCache);
             _accountLabel.Text = sub.AccountDisplayCache;
+            _periodLabel.Text = $"{occ.ScheduledDate.Month}月期次 · 计划 {FormatHelpers.FormatMonthDay(occ.ScheduledDate)}";
+            _amountEntry.Text = (occ.ExpectedAmountCents / 100m).ToString("0.00");
+            _selectedPaidDate = occ.ScheduledDate;
+            _paidDateValueLabel.Text = FormatHelpers.FormatFullDate(_selectedPaidDate);
+            _errorLabel.IsVisible = false;
+
+            _overlayRoot.IsVisible = true;
+            _backdrop.Opacity = 0;
+            _sheetCard.TranslationY = 420;
+            await Task.WhenAll(
+                _backdrop.FadeToAsync(1, 180, Easing.CubicOut),
+                _sheetCard.TranslateToAsync(0, 0, 220, Easing.CubicOut));
         }
-
-        _periodLabel.Text = $"{occ.ScheduledDate.Month}月期次 · 计划 {FormatHelpers.FormatMonthDay(occ.ScheduledDate)}";
-        _amountEntry.Text = (occ.ExpectedAmountCents / 100m).ToString("0.00");
-        _selectedPaidDate = occ.ScheduledDate;
-        _paidDateValueLabel.Text = FormatHelpers.FormatFullDate(_selectedPaidDate);
-        _errorLabel.IsVisible = false;
-
-        _overlayRoot.IsVisible = true;
-        _backdrop.Opacity = 0;
-        _sheetCard.TranslationY = 420;
-        await Task.WhenAll(
-            _backdrop.FadeToAsync(1, 180, Easing.CubicOut),
-            _sheetCard.TranslateToAsync(0, 0, 220, Easing.CubicOut));
+        catch
+        {
+            _occurrenceId = null;
+            _overlayRoot.IsVisible = false;
+            throw;
+        }
+        finally
+        {
+            _isOpening = false;
+        }
     }
 
-    public async Task CloseAsync()
+    private Task DismissAsync() => CanInteract ? CloseAsync() : Task.CompletedTask;
+
+    private async Task CloseAsync()
     {
-        if (!_overlayRoot.IsVisible) return;
-        await Task.WhenAll(
-            _backdrop.FadeToAsync(0, 140, Easing.CubicIn),
-            _sheetCard.TranslateToAsync(0, 420, 160, Easing.CubicIn));
-        _overlayRoot.IsVisible = false;
+        if (!_overlayRoot.IsVisible || _isClosing) return;
+        _isClosing = true;
+        try
+        {
+            await Task.WhenAll(
+                _backdrop.FadeToAsync(0, 140, Easing.CubicIn),
+                _sheetCard.TranslateToAsync(0, 420, 160, Easing.CubicIn));
+        }
+        finally
+        {
+            _occurrenceId = null;
+            _overlayRoot.IsVisible = false;
+            _isClosing = false;
+        }
     }
 
     private async void OnConfirmClicked(object? sender, EventArgs e)
     {
-        if (_busy || string.IsNullOrEmpty(_occurrenceId)) return;
+        if (!CanInteract || string.IsNullOrEmpty(_occurrenceId)) return;
 
         if (!FormatHelpers.TryParseCnyToCents(_amountEntry.Text, out var cents))
         {
@@ -420,7 +452,7 @@ public sealed class ConfirmBillingSheet : Grid
 
     private async void OnSkipClicked(object? sender, EventArgs e)
     {
-        if (_busy || string.IsNullOrEmpty(_occurrenceId)) return;
+        if (!CanInteract || string.IsNullOrEmpty(_occurrenceId)) return;
 
         _busy = true;
         try

@@ -100,7 +100,7 @@ public sealed class HomePage : ContentPage
             VerticalOptions = LayoutOptions.Center
         }, 0, 0);
 
-        var addBtn = UiHelper.CreateCircleIconButton("+", async () => await OpenAddSubscriptionAsync());
+        var addBtn = UiHelper.CreateCircleIconButtonAsync(VectorIconKind.Plus, OpenAddSubscriptionAsync);
         header.Add(addBtn, 1, 0);
 
         // 倒计时主卡

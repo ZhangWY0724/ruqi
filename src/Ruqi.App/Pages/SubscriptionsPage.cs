@@ -208,7 +208,7 @@ public sealed class SubscriptionsPage : ContentPage
         });
         header.Add(searchToggleBtn, 1, 0);
 
-        var addBtn = UiHelper.CreateCircleIconButton("+", async () =>
+        var addBtn = UiHelper.CreateCircleIconButtonAsync(VectorIconKind.Plus, async () =>
         {
             var page = ActivatorUtilities.CreateInstance<SubscriptionFormPage>(_services);
             await ModalCoordinator.PushModalAsync(Navigation, page, animated: true);

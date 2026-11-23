@@ -49,8 +49,22 @@ public static class UiHelper
 
     public static Border CreateCircleIconButton(VectorIconKind iconKind, Action onTap, Color? bg = null, Color? fg = null, double size = 36, float stroke = 2.0f)
     {
+        var button = CreateCircleIcon(iconKind, bg, fg, size, stroke);
+        AttachTap(button, onTap);
+        return button;
+    }
+
+    public static Border CreateCircleIconButtonAsync(VectorIconKind iconKind, Func<Task> onTap, Color? bg = null, Color? fg = null, double size = 36, float stroke = 2.0f)
+    {
+        var button = CreateCircleIcon(iconKind, bg, fg, size, stroke);
+        AttachTapAsync(button, onTap);
+        return button;
+    }
+
+    private static Border CreateCircleIcon(VectorIconKind iconKind, Color? bg, Color? fg, double size, float stroke)
+    {
         var iconSize = size * 0.48;
-        var btn = new Border
+        return new Border
         {
             WidthRequest = size,
             HeightRequest = size,
@@ -72,10 +86,6 @@ public static class UiHelper
                 VerticalOptions = LayoutOptions.Center
             }
         };
-        var tap = new TapGestureRecognizer();
-        tap.Tapped += (_, _) => onTap();
-        btn.GestureRecognizers.Add(tap);
-        return btn;
     }
 
     public static Border CreateCircleIconButton(string glyph, Action onTap, Color? bg = null, Color? fg = null, double size = 36)
